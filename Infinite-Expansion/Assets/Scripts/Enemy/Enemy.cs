@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Analytics;
+using UnityEngine.AI;
+
 public class Enemy : MonoBehaviour
 {
     public string name = "anonymous";
@@ -16,16 +18,15 @@ public class Enemy : MonoBehaviour
     private Slider hpSlider;
     private GameObject target;
     private string status = "forward";
-    private Transform[] positions;
-    private int index = 0;
     private Animator anim;
     private float timer = 0;
     public int money = 10;
+    private NavMeshAgent nam;
 
     // Start is called before the first frame update
     void Start()
     {
-        positions = Waypoints.positions;
+        nam = GetComponent<NavMeshAgent>();
         hpSlider = GetComponentInChildren<Slider>();
         totalHp = hp;
         anim = GetComponent<Animator>();
@@ -35,10 +36,9 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log(anim.SetTrigger("attack"));
         if (status == "forward")
         {
-            Move();
+            Forward();
         }
         else if (status == "fight")
         {
@@ -50,11 +50,13 @@ public class Enemy : MonoBehaviour
             }
             if (Vector3.Distance(target.transform.position, transform.position) > attackDistance)
             {
-                transform.Translate(Vector3.forward * Time.deltaTime * speed);
-                transform.forward = target.transform.position - transform.position;
+                nam.SetDestination(target.transform.position);
+                //this.GetComponent<LookAt>().lookAtTargetPosition = target.transform.position + transform.forward;
+                transform.LookAt(target.transform.position + transform.forward);
             }
             else
             {
+                nam.ResetPath();
                 timer += Time.deltaTime;
                 if (timer >= attackRate)
                 {
@@ -68,23 +70,12 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void Move()
+    private void Forward()
     {
-        if (index > positions.Length - 1)
-        {
-            return;
-        }
-        transform.Translate(Vector3.forward * Time.deltaTime * speed);
+        nam.SetDestination(HomeCube.endPosition.position);
+        transform.LookAt(HomeCube.endPosition.position);
         anim.Play("WalkFWD");
-        transform.forward = positions[index].position - transform.position;
-        if(Time.deltaTime * speed >= Vector3.Distance (transform.position, positions[index].position)){
-            index++;
-        }
-        else if (Vector3.Distance(positions[index].position, transform.position) < 0.02f)
-        {
-            index++;
-        }
-        if (index > positions.Length - 1)
+        if (Vector3.Distance(HomeCube.endPosition.position, transform.position) < 0.02f)
         {
             ReachDestination();
         }

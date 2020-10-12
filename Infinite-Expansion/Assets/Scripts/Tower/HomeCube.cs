@@ -6,6 +6,7 @@ using Manager;
 
 public class HomeCube : MonoBehaviour
 {
+    public static Transform endPosition;
     public int hp = 1000;
     private int totalHp;
     public Slider hpSlider;
@@ -13,6 +14,7 @@ public class HomeCube : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        endPosition = this.GetComponent<Transform>();
         totalHp = hp;
     }
 
